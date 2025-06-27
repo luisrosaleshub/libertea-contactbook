@@ -1,0 +1,57 @@
+@page "/customerdetail/{CustomerId:int}"
+@inject IHttpClientFactory ClientFactory
+
+<h3>Customer Detail</h3>
+
+@if (customer is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="card p-3">
+        <h4>@customer.FirstName @customer.LastName</h4>
+        <p><strong>Phone:</strong> @customer.Phone</p>
+        <p><strong>Address:</strong> @customer.Street, @customer.City, @customer.State @customer.Zip</p>
+        <p><strong>DOB:</strong> @customer.DateOfBirth?.ToShortDateString()</p>
+    </div>
+
+    <h5 class="mt-4">Order History</h5>
+    @if (orders.Count == 0)
+    {
+        <p>No orders found.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Order Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in orders)
+                {
+                    <tr>
+                        <td>@order.CreatedAt.ToLocalTime().ToShortDateString()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    [Parameter] public int CustomerId { get; set; }
+
+    private Customer? customer;
+    private List<Order> orders = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = ClientFactory.CreateClient("LiberTeaAPI");
+
+        customer = await client.GetFromJsonAsync<Customer>($"/api/customers/{CustomerId}");
+        orders = await client.GetFromJsonAsync<List<Order>>($"/api/customers/{CustomerId}/orders");
+    }
+}
