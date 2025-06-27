@@ -18,9 +18,6 @@ namespace ContactBook.Api.Data
 
             b.Entity<Order>().Property(o => o.CreatedAt).HasColumnName("CreatedAt");
 
-            // Decimal type mapping (optional; adjust to match actual schema)
-            //b.Entity<Order>().Property(o => o.Total).HasColumnType("decimal(10,2)");
-
             // One-to-many relationship
             b.Entity<Customer>()
                  .HasMany(c => c.Orders)

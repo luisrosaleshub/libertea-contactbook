@@ -4,7 +4,7 @@
 <h3>Customer Search</h3>
 
 <div class="mb-3">
-    <input class="form-control" @bind="search" placeholder="Search by name..." />
+    <input class="form-control" @bind-value="search" @bind-value:event="oninput" @onkeypress="HandleKeyPress" placeholder="Search by name..." />
     <button class="btn btn-primary mt-2" @onclick="SearchCustomers">Search</button>
 </div>
 
@@ -30,6 +30,14 @@ else if (customers is not null)
     private string search = "";
     private List<Customer>? customers;
     private bool isLoading = false;
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchCustomers();
+        }
+    }
 
     private async Task SearchCustomers()
     {
