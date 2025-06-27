@@ -26,6 +26,7 @@ else
         <table class="table">
             <thead>
                 <tr>
+                    <th>Order ID</th>
                     <th>Order Date</th>
                 </tr>
             </thead>
@@ -33,6 +34,7 @@ else
                 @foreach (var order in orders)
                 {
                     <tr>
+                        <td>@order.Id</td>
                         <td>@order.CreatedAt.ToLocalTime().ToShortDateString()</td>
                     </tr>
                 }
