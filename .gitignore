@@ -1,0 +1,11 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.dbmdl
+*.pdb
+*.cache
+*.log
+*.vs/
+*.vscode/
