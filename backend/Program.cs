@@ -64,7 +64,7 @@ app.MapGet("/api/customers/{id:int}",                               // detail
 app.MapGet("/api/customers/{id:int}/orders",                        // order history
     async (int id, AppDbContext db) =>
         await db.Orders
-                .Where(o => o.Id == id)
+                .Where(o => o.CustomerId == id)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync());
 				
