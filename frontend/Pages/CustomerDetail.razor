@@ -1,48 +1,106 @@
 @page "/customerdetail/{CustomerId:int}"
 @inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
 
-<PageTitle>LiberTea</PageTitle>
+<PageTitle>LiberTea - Customer Detail</PageTitle>
+
+<div class="mb-3">
+    <button class="btn btn-secondary" @onclick="NavigateBack">
+        <i class="oi oi-arrow-left"></i> Back to Search
+    </button>
+</div>
 
 <h3>Customer Detail</h3>
 
-@if (customer is null)
+@if (isLoading)
 {
-    <p>Loading...</p>
-}
-else
-{
-    <div class="card p-3">
-        <h4>@customer.FirstName @customer.LastName</h4>
-        <p><strong>Phone:</strong> @customer.Phone</p>
-        <p><strong>Address:</strong> @customer.Street, @customer.City, @customer.State @customer.Zip</p>
-        <p><strong>DOB:</strong> @customer.DateOfBirth?.ToShortDateString()</p>
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
     </div>
+}
+else if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">
+        <i class="oi oi-warning me-2"></i>
+        @error
+    </div>
+}
+else if (customer is not null)
+{
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">@customer.FirstName @customer.LastName</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Contact Information</h5>
+                    <p>
+                        <i class="oi oi-phone me-2"></i>
+                        <strong>Phone:</strong> @(string.IsNullOrEmpty(customer.Phone) ? "Not provided" : customer.Phone)
+                    </p>
+                    
+                    <h5 class="mt-4">Address</h5>
+                    @if (HasAddress())
+                    {
+                        <p>
+                            <i class="oi oi-home me-2"></i>
+                            @customer.Street<br />
+                            @customer.City, @customer.State @customer.Zip
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No address provided</p>
+                    }
 
-    <h5 class="mt-4">Order History</h5>
-    @if (orders.Count == 0)
-    {
-        <p>No orders found.</p>
-    }
-    else
-    {
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Order Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var order in orders)
-                {
-                    <tr>
-                        <td>@order.Id</td>
-                        <td>@order.CreatedAt.ToLocalTime().ToShortDateString()</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
+                    @if (customer.DateOfBirth.HasValue)
+                    {
+                        <h5 class="mt-4">Personal Information</h5>
+                        <p>
+                            <i class="oi oi-calendar me-2"></i>
+                            <strong>Date of Birth:</strong> @customer.DateOfBirth.Value.ToShortDateString()
+                        </p>
+                    }
+                </div>
+                
+                <div class="col-md-6">
+                    <h5>Order History</h5>
+                    @if (!orders.Any())
+                    {
+                        <p class="text-muted">
+                            <i class="oi oi-basket me-2"></i>
+                            No orders found for this customer.
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Order Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in orders)
+                                    {
+                                        <tr>
+                                            <td>@order.Id</td>
+                                            <td>@order.CreatedAt.ToLocalTime().ToShortDateString()</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
@@ -50,12 +108,44 @@ else
 
     private Customer? customer;
     private List<Order> orders = [];
+    private bool isLoading = true;
+    private string? error;
 
     protected override async Task OnInitializedAsync()
     {
-        var client = ClientFactory.CreateClient("LiberTeaAPI");
+        try
+        {
+            var client = ClientFactory.CreateClient("LiberTeaAPI");
 
-        customer = await client.GetFromJsonAsync<Customer>($"/api/customers/{CustomerId}");
-        orders = await client.GetFromJsonAsync<List<Order>>($"/api/customers/{CustomerId}/orders");
+            customer = await client.GetFromJsonAsync<Customer>($"/api/customers/{CustomerId}");
+            if (customer is null)
+            {
+                error = $"Customer with ID {CustomerId} not found.";
+                return;
+            }
+
+            orders = await client.GetFromJsonAsync<List<Order>>($"/api/customers/{CustomerId}/orders") ?? [];
+        }
+        catch (Exception ex)
+        {
+            error = $"Error loading customer details: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private bool HasAddress()
+    {
+        return !string.IsNullOrEmpty(customer?.Street) &&
+               !string.IsNullOrEmpty(customer?.City) &&
+               !string.IsNullOrEmpty(customer?.State) &&
+               !string.IsNullOrEmpty(customer?.Zip);
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/customersearch");
     }
 }
