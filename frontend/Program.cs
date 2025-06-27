@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using frontend.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +10,6 @@ builder.Services.AddHttpClient("LiberTeaAPI", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5167");
 });
-builder.Services.AddSingleton<WeatherForecastService>();
 
 var app = builder.Build();
 
