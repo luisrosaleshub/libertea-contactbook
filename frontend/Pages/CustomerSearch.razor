@@ -8,22 +8,48 @@
     <button class="btn btn-primary mt-2" @onclick="SearchCustomers">Search</button>
 </div>
 
+@if (string.IsNullOrWhiteSpace(search))
+{
+    <div class="alert alert-info" role="alert">
+        <i class="oi oi-info me-2"></i>
+        No search term provided. Results will be limited to the maximum number of records set in the system.
+    </div>
+}
+
 @if (isLoading)
 {
-    <p>Loading...</p>
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
 }
 else if (customers is not null)
 {
-    <ul class="list-group">
-        @foreach (var c in customers)
-        {
-            <li class="list-group-item">
-                <a href="@($"/customerdetail/{c.Id}")">
-                    @c.FirstName @c.LastName
-                </a>
-            </li>
-        }
-    </ul>
+    @if (!customers.Any())
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="oi oi-warning me-2"></i>
+            No customers found matching your search criteria.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-success mb-3" role="alert">
+            <i class="oi oi-people me-2"></i>
+            Found @customers.Count customer@(customers.Count == 1 ? "" : "s")
+        </div>
+        <ul class="list-group">
+            @foreach (var c in customers)
+            {
+                <li class="list-group-item">
+                    <a href="@($"/customerdetail/{c.Id}")">
+                        @c.FirstName @c.LastName
+                    </a>
+                </li>
+            }
+        </ul>
+    }
 }
 
 @code {
